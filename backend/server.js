@@ -1,41 +1,35 @@
-// backend/server.js
-require('dotenv').config();
+// backend/server.js relevant section
 const express = require('express');
-const mongoose = require('mongoose');
+const connectDB = require('./config/db');
+const dotenv = require('dotenv');
 const cors = require('cors');
-const path = require('path'); // Add path module for serving static files
+
+dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(cors());
-
-// Serve static files from the 'uploads' directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // <--- এই লাইনটি যোগ করুন
-
-// Connect to MongoDB
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected...');
-  } catch (err) {
-    console.error(err.message);
-    process.exit(1);
-  }
-};
+// Connect Database
 connectDB();
 
-// Define a simple root route for testing
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
+// Init Middleware
+app.use(express.json({ extended: false }));
+app.use(cors());
 
-// API Routes
+// Define Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/theses', require('./routes/thesis')); // <<-- এই লাইনটি যোগ করুন
-// TODO: Other routes will be added here
+app.use('/api/theses', require('./routes/thesis'));
+app.use('/api/users', require('./routes/users')); // <<< Add this line
+
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder
+  app.use(express.static('client/build'));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

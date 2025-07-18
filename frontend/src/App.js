@@ -6,8 +6,9 @@ import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import ThesisUpload from './pages/ThesisUpload'; // <<-- এই লাইনটি ইম্পোর্ট করুন
-// import AdminPanel from './pages/AdminPanel'; // পরে যোগ হবে
+import ThesisUpload from './pages/ThesisUpload';
+import AdminPanel from './pages/AdminPanel';
+import Profile from './pages/Profile'; // <<< Import this line
 
 function App() {
   return (
@@ -19,9 +20,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/upload" element={<ThesisUpload />} /> {/* <<-- এই লাইনটি যোগ করুন */}
-          {/* TODO: Add other routes here */}
-          {/* <Route path="/admin" element={<AdminPanel />} /> */}
+          <Route path="/upload" element={<ThesisUpload />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/profile" element={<Profile />} /> {/* <<< Add this route */}
         </Routes>
       </div>
     </Router>

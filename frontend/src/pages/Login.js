@@ -1,8 +1,8 @@
 // frontend/src/pages/Login.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import '../styles/AuthForms.css'; // স্টাইলিং এর জন্য
+import { Link } from 'react-router-dom'; // useNavigate is no longer needed here for direct redirect
+import '../styles/AuthForms.css';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -11,7 +11,7 @@ function Login() {
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // This line can be removed as we are using window.location.href
 
   const { email, password } = formData;
 
@@ -25,18 +25,15 @@ function Login() {
       const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, formData);
       setMessage(res.data.message || 'Login successful!');
       setError('');
-      localStorage.setItem('token', res.data.token); // টোকেন সেভ হচ্ছে কিনা নিশ্চিত করুন
+      
+      // Save the token to localStorage immediately
+      localStorage.setItem('token', res.data.token);
 
-      console.log('Login successful. Attempting to navigate to /dashboard...'); // <<< এই লাইনটি যোগ করুন
-
-      // গুরুত্বপূর্ণ: window.location.reload() লাইনটি থাকলে এটিকে কমেন্ট আউট করে দিন
-      // কারণ এটি navigate() কে বাধা দিতে পারে।
-      // window.location.reload(); // <<< যদি এই লাইনটি থাকে, তবে এটিকে কমেন্ট আউট করুন
-
-      // 1 সেকেন্ড পর ড্যাশবোর্ডে রিডাইরেক্ট করবে
-      setTimeout(() => {
-        navigate('/dashboard'); // <<< এই লাইনটি আছে এবং সঠিকভাবে কল হচ্ছে কিনা নিশ্চিত করুন
-      }, 1000); // 1 সেকেন্ড বিলম্ব
+      console.log('Login successful. Forcing full page load to dashboard...');
+      
+      // *** Use window.location.href to force a full page load to the dashboard ***
+      // This is the most reliable way to ensure the Navbar and all components re-initialize
+      window.location.href = '/dashboard'; 
 
     } catch (err) {
       console.error('Login error:', err.response ? err.response.data : err.message);
@@ -44,15 +41,15 @@ function Login() {
       setMessage('');
     }
   };
-
+  
   return (
     <div className="auth-form-container">
-      <h2>Login</h2>
+      <h2>লগইন (Login)</h2>
       {message && <p className="success-message">{message}</p>}
       {error && <p className="error-message">{error}</p>}
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="form-group">
-          <label htmlFor="email">Email:</label>
+          <label htmlFor="email">ইমেইল (Email):</label>
           <input
             type="email"
             id="email"
@@ -63,7 +60,7 @@ function Login() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">পাসওয়ার্ড (Password):</label>
           <input
             type="password"
             id="password"
@@ -73,8 +70,11 @@ function Login() {
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">লগইন (Login)</button>
       </form>
+      <p className="form-footer-text">
+        একাউন্ট নেই? (No account?) <Link to="/register">এখানে রেজিস্টার করুন (Register here)</Link>
+      </p>
     </div>
   );
 }

@@ -1,0 +1,75 @@
+/* frontend/src/styles/Profile.css */
+.profile-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 40px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.profile-container h2 {
+  color: #007bff;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  font-weight: 700;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 15px;
+  display: inline-block;
+}
+
+.profile-details {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.profile-details p {
+  font-size: 1.1em;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.profile-details p strong {
+  color: #000;
+  margin-right: 5px;
+}
+
+.role-specific-info {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px dashed #ccc;
+}
+
+.role-specific-info h4 {
+  color: #28a745;
+  margin-bottom: 15px;
+  font-size: 1.4em;
+}
+
+.role-specific-info p {
+  font-style: italic;
+  color: #666;
+}
+
+.edit-profile-btn {
+  background-color: #6c757d;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-profile-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Inherit success/error messages from index.css for consistency */
+/* .success-message, .error-message are already defined in index.css */

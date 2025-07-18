@@ -1,0 +1,22 @@
+/* frontend/src/styles/AdminPanel.css এর শেষে যোগ করুন */
+
+.admin-section {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.admin-section h3 {
+    text-align: center;
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
+
+.action-button.delete {
+    background-color: #dc3545; /* Red for Delete */
+    margin-left: 5px;
+}
+
+.action-button.delete:hover {
+    background-color: #c82333;
+}
