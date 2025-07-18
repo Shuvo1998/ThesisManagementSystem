@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 // TODO: Define API routes here (e.g., app.use('/api/auth', require('./routes/auth')));
-// (এই লাইনটি পরে আমরা app.use('/api/auth', require('./routes/auth')); দিয়ে পরিবর্তন করব)
+app.use('/api/auth', require('./routes/auth'));
 
 const PORT = process.env.PORT || 5000;
 
