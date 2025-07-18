@@ -1,14 +1,18 @@
 // backend/server.js
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path'); // Add path module for serving static files
 
 const app = express();
 
 // Middleware
-app.use(express.json()); // Body parser for JSON data
-app.use(cors()); // Enable CORS for all origins (for development)
+app.use(express.json());
+app.use(cors());
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // <--- এই লাইনটি যোগ করুন
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -17,7 +21,6 @@ const connectDB = async () => {
     console.log('MongoDB Connected...');
   } catch (err) {
     console.error(err.message);
-    // Exit process with failure
     process.exit(1);
   }
 };
@@ -28,8 +31,10 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// TODO: Define API routes here (e.g., app.use('/api/auth', require('./routes/auth')));
+// API Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/theses', require('./routes/thesis')); // <<-- এই লাইনটি যোগ করুন
+// TODO: Other routes will be added here
 
 const PORT = process.env.PORT || 5000;
 

@@ -1,11 +1,12 @@
+// frontend/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Register from './pages/Register'; // <<-- ইম্পোর্ট করুন
-import Login from './pages/Login';     // <<-- ইম্পোর্ট করুন
-import Dashboard from './pages/Dashboard'; // পরে যোগ হবে
-// import ThesisUpload from './pages/ThesisUpload'; // পরে যোগ হবে
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import ThesisUpload from './pages/ThesisUpload'; // <<-- এই লাইনটি ইম্পোর্ট করুন
 // import AdminPanel from './pages/AdminPanel'; // পরে যোগ হবে
 
 function App() {
@@ -15,11 +16,11 @@ function App() {
       <div className="container" style={{ paddingTop: '80px' }}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/register" element={<Register />} /> {/* <<-- রুট যোগ করুন */}
-          <Route path="/login" element={<Login />} />     {/* <<-- রুট যোগ করুন */}
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/upload" element={<ThesisUpload />} /> {/* <<-- এই লাইনটি যোগ করুন */}
           {/* TODO: Add other routes here */}
-          <Route path="/dashboard" element={<Dashboard />} /> 
-          {/* <Route path="/upload" element={<ThesisUpload />} /> */}
           {/* <Route path="/admin" element={<AdminPanel />} /> */}
         </Routes>
       </div>
