@@ -77,10 +77,60 @@ router.post('/', auth, upload.single('thesisFile'), async (req, res) => { // <<<
     res.status(500).send('Server Error');
   }
 });
-router.get('/', async (req, res) => { // <<< ENSURE THIS ROUTE IS HERE AND CORRECT
+router.get('/', async (req, res) => { // এই রুটটি আপডেট করুন
   try {
-    // Populate uploadedBy field with username and email
-    const theses = await Thesis.find().populate('uploadedBy', ['username', 'email']);
+    const { search, department, author, status, uploadedBy } = req.query; // কোয়েরি প্যারামিটারগুলো গ্রহণ করুন
+    let query = {};
+
+    // Search by title, abstract, keywords, or authors
+    if (search) {
+      const searchRegex = new RegExp(search, 'i'); // Case-insensitive search
+      query.$or = [
+        { title: searchRegex },
+        { abstract: searchRegex },
+        { keywords: searchRegex },
+        { authors: searchRegex },
+      ];
+    }
+
+    // Filter by department
+    if (department) {
+      query.department = new RegExp(department, 'i');
+    }
+
+    // Filter by author (if 'author' query param is explicitly for author field)
+    if (author) {
+      query.authors = new RegExp(author, 'i');
+    }
+
+    // Filter by status (for public viewing, might only show 'approved')
+    // For now, public users can see 'pending' too, but you might change this later
+    if (status && ['pending', 'approved', 'rejected'].includes(status.toLowerCase())) {
+        query.status = status.toLowerCase();
+    } else {
+        // Default: only show approved theses to public if no status is specified,
+        // or show all for simplicity. Let's show all for now and filter on frontend later.
+        // query.status = 'approved'; // Uncomment this line if you only want approved theses for public
+    }
+
+    // Filter by uploadedBy user ID (e.g., to see theses uploaded by a specific user)
+    if (uploadedBy) {
+        // Ensure uploadedBy is a valid ObjectId if you plan to filter by user ID
+        // For simplicity now, we'll assume it's directly passed and find
+        const user = await User.findOne({ username: new RegExp(uploadedBy, 'i') });
+        if (user) {
+            query.uploadedBy = user._id;
+        } else {
+            // If user not found, no theses match, so return empty
+            return res.json([]);
+        }
+    }
+
+
+    const theses = await Thesis.find(query)
+      .populate('uploadedBy', ['username', 'email']) // আপলোডকারীর ইউজারনেম এবং ইমেল পপুলেট করুন
+      .sort({ submissionDate: -1 }); // নতুন থেকে পুরানো ক্রম অনুসারে সাজান
+
     res.json(theses);
   } catch (err) {
     console.error(err.message);
