@@ -1,24 +1,23 @@
 // backend/routes/thesis.js
 const express = require('express');
 const router = express.Router();
-const multer = require('multer'); // For handling file uploads
+const multer = require('multer');
 const path = require('path');
 const Thesis = require('../models/Thesis');
-const User = require('../models/User'); // To populate uploadedBy field
-const auth = require('../middleware/auth'); // For protecting routes
+const User = require('../models/User');
+const auth = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth'); // <<-- এই লাইনটি যোগ করুন
 
-// Set up Multer for file storage
+// ... (Multer setup and existing POST/GET routes) ...
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); // Files will be saved in the 'uploads' folder
   },
   filename: (req, file, cb) => {
-    // Create a unique filename: fieldname-timestamp.ext
     cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
   },
 });
 
-// File filter to allow only PDF files
 const fileFilter = (req, file, cb) => {
   if (file.mimetype === 'application/pdf') {
     cb(null, true);
@@ -35,57 +34,53 @@ const upload = multer({
   }
 });
 
+
 // @route   POST api/theses
 // @desc    Upload a new thesis
 // @access  Private (only logged-in users can upload)
-router.post('/', auth, upload.single('thesisFile'), async (req, res) => {
+router.post('/', auth, upload.single('thesisFile'), async (req, res) => { // <<< ENSURE THIS ROUTE IS HERE AND CORRECT
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded or file type not allowed (only PDF).' });
+      // This part handles if Multer rejected the file (e.g., not PDF or too large)
+      return res.status(400).json({ message: 'No file uploaded or file type not allowed (only PDF). Max 20MB.' });
     }
 
     const { title, abstract, authors, department, keywords } = req.body;
 
     // Basic validation
     if (!title || !abstract || !authors || !department) {
-      // If authors is an array, ensure it's not empty
-      if (Array.isArray(authors) && authors.length === 0) {
-        return res.status(400).json({ message: 'Please include all required fields: title, abstract, authors, department.' });
-      }
       return res.status(400).json({ message: 'Please include all required fields: title, abstract, authors, department.' });
+    }
+    if (Array.isArray(authors) && authors.length === 0) { // If authors came as an empty array
+        return res.status(400).json({ message: 'Authors field cannot be empty.' });
     }
 
     const newThesis = new Thesis({
       title,
       abstract,
-      authors: Array.isArray(authors) ? authors : authors.split(',').map(s => s.trim()), // Handle comma-separated string or array
+      authors: Array.isArray(authors) ? authors : authors.split(',').map(s => s.trim()),
       department,
       uploadedBy: req.user.id, // User ID from auth middleware
       filePath: req.file.path, // Path where Multer saved the file
       fileMimeType: req.file.mimetype,
-      keywords: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(s => s.trim()) : []), // Handle comma-separated string or array, or empty
+      keywords: Array.isArray(keywords) ? keywords : (keywords ? keywords.split(',').map(s => s.trim()) : []),
     });
 
     const thesis = await newThesis.save();
     res.status(201).json({ message: 'Thesis uploaded successfully!', thesis });
   } catch (err) {
     console.error(err.message);
-    if (err.code === 11000) { // Duplicate key error (if unique fields were added and violated)
-        return res.status(400).json({ message: 'Duplicate entry detected.' });
-    }
-    if (err.message === 'Only PDF files are allowed!') {
+    if (err.message === 'Only PDF files are allowed!') { // Multer error during fileFilter
         return res.status(400).json({ message: err.message });
     }
+    // Handle other errors, e.g., if database save fails
     res.status(500).send('Server Error');
   }
 });
-
-// @route   GET api/theses
-// @desc    Get all theses
-// @access  Public
-router.get('/', async (req, res) => {
+router.get('/', async (req, res) => { // <<< ENSURE THIS ROUTE IS HERE AND CORRECT
   try {
-    const theses = await Thesis.find().populate('uploadedBy', ['username', 'email']); // Populate uploader info
+    // Populate uploadedBy field with username and email
+    const theses = await Thesis.find().populate('uploadedBy', ['username', 'email']);
     res.json(theses);
   } catch (err) {
     console.error(err.message);
@@ -93,48 +88,104 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET api/theses/:id
-// @desc    Get thesis by ID
-// @access  Public
-router.get('/:id', async (req, res) => {
+// @route   PUT api/theses/:id
+// @desc    Update a thesis (by uploader or admin)
+// @access  Private (Uploader or Admin)
+router.put('/:id', auth, async (req, res) => {
+  const { title, abstract, authors, department, keywords, status } = req.body;
+
+  // Build thesis object
+  const thesisFields = {};
+  if (title) thesisFields.title = title;
+  if (abstract) thesisFields.abstract = abstract;
+  if (authors) thesisFields.authors = Array.isArray(authors) ? authors : authors.split(',').map(s => s.trim());
+  if (department) thesisFields.department = department;
+  if (keywords) thesisFields.keywords = Array.isArray(keywords) ? keywords : keywords.split(',').map(s => s.trim());
+  // Status can only be changed by admin
+  if (status && (req.user.role === 'admin')) { // Check for admin role
+    thesisFields.status = status;
+  }
+
   try {
-    const thesis = await Thesis.findById(req.params.id).populate('uploadedBy', ['username', 'email']);
+    let thesis = await Thesis.findById(req.params.id);
+
     if (!thesis) {
       return res.status(404).json({ message: 'Thesis not found' });
     }
-    res.json(thesis);
+
+    // Check user: only uploader or admin can update
+    const user = await User.findById(req.user.id);
+    if (thesis.uploadedBy.toString() !== req.user.id && user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized to update this thesis' });
+    }
+
+    // If a new file is uploaded, this logic would need to be expanded with Multer
+    // For now, this PUT only updates text fields. File replacement is more complex.
+
+    thesis = await Thesis.findByIdAndUpdate(
+      req.params.id,
+      { $set: thesisFields },
+      { new: true } // Return the updated document
+    );
+
+    res.json({ message: 'Thesis updated successfully!', thesis });
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') { // Handle invalid ID format
-        return res.status(404).json({ message: 'Thesis not found' });
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Thesis not found' });
     }
     res.status(500).send('Server Error');
   }
 });
 
-// @route   GET api/theses/download/:id
-// @desc    Download a thesis file
-// @access  Public (or Private, depending on requirements)
-router.get('/download/:id', async (req, res) => {
+
+// @route   DELETE api/theses/:id
+// @desc    Delete a thesis (by uploader or admin)
+// @access  Private (Uploader or Admin)
+router.delete('/:id', auth, async (req, res) => {
   try {
     const thesis = await Thesis.findById(req.params.id);
+
     if (!thesis) {
       return res.status(404).json({ message: 'Thesis not found' });
     }
 
-    const filePath = path.join(__dirname, '..', thesis.filePath); // Construct full path
-    res.download(filePath, thesis.title + path.extname(thesis.filePath), (err) => {
-      if (err) {
-        console.error('File download error:', err.message);
-        return res.status(500).json({ message: 'Could not download the file.' });
-      }
-    });
+    // Check user: only uploader or admin can delete
+    const user = await User.findById(req.user.id);
+    if (thesis.uploadedBy.toString() !== req.user.id && user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized to delete this thesis' });
+    }
+
+    // Optional: Delete the physical file from the 'uploads' folder
+    // This requires 'fs' module
+    // const fs = require('fs');
+    // fs.unlink(thesis.filePath, (err) => {
+    //   if (err) console.error('Failed to delete file from disk:', err);
+    // });
+
+    await Thesis.deleteOne({ _id: req.params.id });
+
+    res.json({ message: 'Thesis removed successfully' });
   } catch (err) {
     console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Thesis not found' });
+    }
     res.status(500).send('Server Error');
   }
 });
 
-// TODO: Add PUT (update) and DELETE routes later, potentially with admin/uploader roles checks
 
+// @route   GET api/theses/admin/all-theses
+// @desc    Get all theses for admin (potentially with more details/filters)
+// @access  Private (Admin only)
+router.get('/admin/all-theses', auth, adminAuth, async (req, res) => {
+    try {
+        const theses = await Thesis.find().populate('uploadedBy', ['username', 'email', 'role']);
+        res.json(theses);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 module.exports = router;

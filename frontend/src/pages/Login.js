@@ -22,15 +22,22 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { // <--- THIS LINE
-        email,
-        password,
-      });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, formData);
       setMessage(res.data.message || 'Login successful!');
       setError('');
-      localStorage.setItem('token', res.data.token);
-      setTimeout(() => navigate('/dashboard'), 1000);
-      window.location.reload();
+      localStorage.setItem('token', res.data.token); // টোকেন সেভ হচ্ছে কিনা নিশ্চিত করুন
+
+      console.log('Login successful. Attempting to navigate to /dashboard...'); // <<< এই লাইনটি যোগ করুন
+
+      // গুরুত্বপূর্ণ: window.location.reload() লাইনটি থাকলে এটিকে কমেন্ট আউট করে দিন
+      // কারণ এটি navigate() কে বাধা দিতে পারে।
+      // window.location.reload(); // <<< যদি এই লাইনটি থাকে, তবে এটিকে কমেন্ট আউট করুন
+
+      // 1 সেকেন্ড পর ড্যাশবোর্ডে রিডাইরেক্ট করবে
+      setTimeout(() => {
+        navigate('/dashboard'); // <<< এই লাইনটি আছে এবং সঠিকভাবে কল হচ্ছে কিনা নিশ্চিত করুন
+      }, 1000); // 1 সেকেন্ড বিলম্ব
+
     } catch (err) {
       console.error('Login error:', err.response ? err.response.data : err.message);
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
