@@ -1,0 +1,13 @@
+# .gitignore
+node_modules/
+.env
+build/
+dist/
+uploads/ # For backend uploaded files
+.vscode/ # VS Code specific files
+*.log
+
+# Python specific (for AI service, if created at root)
+__pycache__/
+*.pyc
+.venv/
