@@ -1,0 +1,55 @@
+/* frontend/src/styles/Home.css */
+
+/* Hero Section Styling */
+.hero-section {
+    /* 기존 ব্যাকগ্রাউন্ড থেকে পরিবর্তন: ছবির সাথে গ্রেডিয়েন্ট যোগ করা হয়েছে */
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), /* গাঢ় গ্রেডিয়েন্ট ওভারলে */
+                url('https://scontent.fdac90-1.fna.fbcdn.net/v/t39.30808-6/480096108_3867111533527354_5592968019078889617_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=33274f&_nc_eui2=AeHaTJyb54M7ormkxNche4AEuHy99b7R7Ey4fL31vtHsTFLTIQdjxZLL7TJFw4rebuvclEgiI9ZkK2Ybz9Md1RDP&_nc_ohc=D3un-ypi8uUQ7kNvwEe4ADD&_nc_oc=AdljvFRproyqkei-98hzuPExaEgl_2caYHFXVmEoOTB1hrrweitQL2jI6uHPa-V_dDI&_nc_zt=23&_nc_ht=scontent.fdac90-1.fna&_nc_gid=E6aenjV9wuzpMAN0Jrmb6w&oh=00_AfSOIOuOYv_QdRRWgzeTveT90P7z1K3He3uFI_sFGf2Cjg&oe=68808DD1') no-repeat center center/cover;
+    /* তোমার আসল ছবির URL দিতে ভুলো না */
+    /* উদাহরণ: url('/images/your-hero-image.jpg') */
+    
+    height: 70vh; /* Viewport height */
+    position: relative;
+    color: white; /* টেক্সটের রঙ সাদা থাকবে */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* text-shadow এখানে আর সরাসরি দরকার নেই, কারণ গ্রেডিয়েন্ট/ওভারলে কাজ করবে */
+}
+
+/* overlay ক্লাসটিকে এবার হয়তো আর দরকার হবে না, যেহেতু background প্রপার্টিতেই গ্রেডিয়েন্ট যোগ করা হয়েছে */
+/* তুমি চাইলে এই .hero-section .overlay ব্লকটি পুরোপুরি কমেন্ট করে দিতে পারো বা মুছে দিতে পারো */
+.hero-section .overlay {
+    /* এটি যদি উপরের background linear-gradient এর সাথে ব্যবহার করো, তাহলে এটি ওভার কিল হতে পারে */
+    /* background-color: rgba(0, 0, 0, 0.0); /* এটিকে প্রায় অদৃশ্য করে দাও */
+    /* অথবা পুরো ব্লকটি কমেন্ট করে দাও */
+    display: none; /* অথবা এটি যোগ করো যাতে ওভারলে না দেখায় */
+}
+
+
+.hero-section .row {
+    position: relative;
+    z-index: 2; /* Ensure content is above overlay */
+}
+
+/* হেডলাইনের জন্য নির্দিষ্ট স্টাইল যা আগে দিয়েছিলাম, সেগুলো থাকুক */
+.hero-section h1 {
+    font-size: 3.5rem; 
+    font-weight: 700; 
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9); /* শ্যাডো আরও শক্তিশালী করুন */
+}
+
+/* ছোট স্ক্রিনের জন্য ফন্ট সাইজ অ্যাডজাস্ট করুন */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 60vh;
+    }
+    .hero-section h1 {
+        font-size: 2.5rem; 
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    .hero-section p.lead {
+        font-size: 1rem;
+    }
+}

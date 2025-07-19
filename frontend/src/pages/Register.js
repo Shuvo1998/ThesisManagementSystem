@@ -1,105 +1,98 @@
 // frontend/src/pages/Register.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import '../styles/AuthForms.css'; // স্টাইলিং এর জন্য পরে তৈরি করব
+import { useNavigate, Link } from 'react-router-dom';
+import { Form, Button, Container, Card, Alert } from 'react-bootstrap'; // <<< এই লাইনটি আপডেট করুন
+//import '../styles/Register.css'; // যদি কোনো কাস্টম CSS থাকে
 
 function Register() {
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
-    password2: '', // Confirm password
+    confirmPassword: '',
   });
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { username, email, password, password2 } = formData;
+  const { email, password, confirmPassword } = formData;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (password !== password2) {
-      setError('Passwords do not match.');
-      setMessage('');
+    setError(null); // Clear previous errors
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, { // <--- THIS LINE
-        username,
-        email,
-        password,
-      });
-      setMessage(res.data.message || 'Registration successful!');
-      setError('');
-      localStorage.setItem('token', res.data.token);
-      setTimeout(() => navigate('/dashboard'), 1000);
-      window.location.reload();
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, { email, password });
+      
+      navigate('/login'); // Redirect to login page after successful registration
     } catch (err) {
       console.error('Registration error:', err.response ? err.response.data : err.message);
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
-      setMessage('');
+      // If validation errors (e.g., from express-validator), display them
+      if (err.response && err.response.data && err.response.data.errors) {
+        setError(err.response.data.errors.map(e => e.msg).join(', '));
+      }
     }
   };
 
   return (
-    <div className="auth-form-container">
-      <h2>Register</h2>
-      {message && <p className="success-message">{message}</p>}
-      {error && <p className="error-message">{error}</p>}
-      <form onSubmit={handleSubmit} className="auth-form">
-        <div className="form-group">
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password2">Confirm Password:</label>
-          <input
-            type="password"
-            id="password2"
-            name="password2"
-            value={password2}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-    </div>
+    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+      <Card className="p-4 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+        <h2 className="text-center mb-4">Register</h2>
+        {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+        <Form onSubmit={onSubmit}>
+          <Form.Group controlId="formBasicEmail" className="mb-3">
+            <Form.Label>Email address</Form.Label>
+            <Form.Control
+              type="email"
+              placeholder="Enter email"
+              name="email"
+              value={email}
+              onChange={onChange}
+              required
+            />
+          </Form.Group>
+
+          <Form.Group controlId="formBasicPassword" className="mb-3">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Password"
+              name="password"
+              value={password}
+              onChange={onChange}
+              required
+            />
+          </Form.Group>
+
+          <Form.Group controlId="formBasicConfirmPassword" className="mb-3">
+            <Form.Label>Confirm Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Confirm Password"
+              name="confirmPassword"
+              value={confirmPassword}
+              onChange={onChange}
+              required
+            />
+          </Form.Group>
+
+          <Button variant="primary" type="submit" className="w-100">
+            Register
+          </Button>
+        </Form>
+        <p className="text-center mt-3">
+          Already have an account? <Link to="/login">Login here</Link>
+        </p>
+      </Card>
+    </Container>
   );
 }
 

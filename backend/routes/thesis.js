@@ -7,7 +7,19 @@ const authorize = require('../middleware/authorize'); // authorize middleware �
 const Thesis = require('../models/Thesis');
 const User = require('../models/User'); // ইউজারের ইমেইল ফেচ করার জন্য
 
-
+// @route   GET /api/theses/me
+// @desc    Get all theses uploaded by the current user
+// @access  Private
+router.get('/me', auth, async (req, res) => {
+  try {
+    // req.user.id আসে auth মিডলওয়্যার থেকে, যা লগইন করা ইউজারের ID
+    const theses = await Thesis.find({ user: req.user.id }).populate('user', ['email']);
+    res.json(theses);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 // @route   GET /api/theses
 // @desc    Get all approved theses for the dashboard (public view)
 // @access  Public

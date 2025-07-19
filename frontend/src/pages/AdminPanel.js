@@ -1,172 +1,110 @@
 // frontend/src/pages/AdminPanel.js
-import React, { useEffect, useState, useCallback } from 'react'; // useCallback যোগ করা হয়েছে
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import '../styles/AdminPanel.css';
+import { Container, Spinner, Alert, Table, Button, Dropdown } from 'react-bootstrap'; // <<< Table, Button, Dropdown ইম্পোর্ট করুন
+//import '../styles/AdminPanel.css'; // যদি কোনো কাস্টম CSS থাকে
 
 function AdminPanel() {
+  const [theses, setTheses] = useState([]);
   const [users, setUsers] = useState([]);
-  const [theses, setTheses] = useState([]); // থিসিসের স্টেট যোগ করা হয়েছে
-  const [loadingUsers, setLoadingUsers] = useState(true); // ইউজারের জন্য লোডিং স্টেট
-  const [loadingTheses, setLoadingTheses] = useState(true); // থিসিসের জন্য লোডিং স্টেট
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState('');
 
-  // সকল ইউজার ফেচ করার ফাংশন
-  const fetchUsers = useCallback(async () => { // useCallback যোগ করা হয়েছে
-    setLoadingUsers(true);
+  const token = localStorage.getItem('token');
+  const config = {
+    headers: {
+      'x-auth-token': token,
+    },
+  };
+
+  const fetchUsersAndTheses = useCallback(async () => {
+    setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
+      const usersRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/all`, config);
+      setUsers(usersRes.data);
 
-      const config = {
-        headers: {
-          'x-auth-token': token,
-        },
-      };
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`, config);
-      setUsers(res.data);
-      setLoadingUsers(false);
+      const thesesRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/theses/all`, config);
+      setTheses(thesesRes.data);
+
+      setLoading(false);
     } catch (err) {
-      console.error('Error fetching users:', err.response ? err.response.data : err.message);
-      setError(err.response?.data?.message || 'Failed to load users.');
-      setLoadingUsers(false);
+      console.error('Admin Panel fetch error:', err.response ? err.response.data : err.message);
+      setError(err.response?.data?.message || 'Failed to load admin data.');
+      setLoading(false);
     }
-  }, []); // ডিপেন্ডেন্সি নেই, তাই খালি array
-
-  // সকল থিসিস ফেচ করার ফাংশন
-  const fetchTheses = useCallback(async () => { // useCallback যোগ করা হয়েছে
-    setLoadingTheses(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
-
-      const config = {
-        headers: {
-          'x-auth-token': token,
-        },
-      };
-      // ব্যাকএন্ডে একটি নতুন API এন্ডপয়েন্ট লাগবে সকল থিসিস পাওয়ার জন্য
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/theses/all`, config); // 'all' এন্ডপয়েন্ট ব্যবহার করা হবে
-      setTheses(res.data);
-      setLoadingTheses(false);
-    } catch (err) {
-      console.error('Error fetching theses:', err.response ? err.response.data : err.message);
-      setError(err.response?.data?.message || 'Failed to load theses.');
-      setLoadingTheses(false);
-    }
-  }, []); // ডিপেন্ডেন্সি নেই, তাই খালি array
+  }, [config]);
 
   useEffect(() => {
-    fetchUsers();
-    fetchTheses(); // থিসিসও ফেচ করার জন্য কল করুন
-  }, [fetchUsers, fetchTheses]); // useCallback ফাংশনগুলো ডিপেন্ডেন্সি হিসেবে যুক্ত করা হয়েছে
+    fetchUsersAndTheses();
+  }, [fetchUsersAndTheses]);
 
-  // ইউজারের রোল আপডেট করার ফাংশন (আগের মতোই আছে)
-  const handleRoleChange = async (userId, newRole) => {
-    setMessage('');
+  const handleThesisStatusChange = async (id, status) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
-
-      const config = {
-        headers: {
-          'x-auth-token': token,
-        },
-      };
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/users/${userId}/role`, { role: newRole }, config);
-      
-      setMessage(`User role updated to ${newRole} successfully!`);
-      fetchUsers(); 
-    } catch (err) {
-      console.error('Error updating user role:', err.response ? err.response.data : err.message);
-      setError(err.response?.data?.message || 'Failed to update user role.');
-    }
-  };
-
-  // থিসিস স্ট্যাটাস আপডেট করার ফাংশন (যেমন: Approve/Reject)
-  const handleThesisStatusChange = async (thesisId, newStatus) => {
-    setMessage('');
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
-
-      const config = {
-        headers: {
-          'x-auth-token': token,
-        },
-      };
-      // ব্যাকএন্ডে থিসিস স্ট্যাটাস আপডেট করার জন্য নতুন API এন্ডপয়েন্ট লাগবে
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/theses/${thesisId}/status`, { status: newStatus }, config);
-      
-      setMessage(`Thesis status updated to ${newStatus} successfully!`);
-      fetchTheses(); // স্ট্যাটাস পরিবর্তনের পর তালিকা আপডেট করতে আবার থিসিস ফেচ করুন
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/theses/${id}/status`, { status }, config);
+      fetchUsersAndTheses(); // Refetch data to update the table
     } catch (err) {
       console.error('Error updating thesis status:', err.response ? err.response.data : err.message);
-      setError(err.response?.data?.message || 'Failed to update thesis status.');
+      alert(err.response?.data?.message || 'Failed to update thesis status.'); // Display alert
     }
   };
 
-  // থিসিস ডিলিট করার ফাংশন
-  const handleDeleteThesis = async (thesisId) => {
-    setMessage('');
+  const handleDeleteThesis = async (id) => {
     if (window.confirm('Are you sure you want to delete this thesis?')) {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found. Please log in.');
-        }
-
-        const config = {
-          headers: {
-            'x-auth-token': token,
-          },
-        };
-        // ব্যাকএন্ডে থিসিস ডিলিট করার জন্য নতুন API এন্ডপয়েন্ট লাগবে
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/theses/${thesisId}`, config);
-        
-        setMessage('Thesis deleted successfully!');
-        fetchTheses(); // ডিলিটের পর তালিকা আপডেট করুন
+        await axios.delete(`${process.env.REACT_APP_API_URL}/api/theses/${id}`, config);
+        fetchUsersAndTheses(); // Refetch data to update the table
       } catch (err) {
         console.error('Error deleting thesis:', err.response ? err.response.data : err.message);
-        setError(err.response?.data?.message || 'Failed to delete thesis.');
+        alert(err.response?.data?.message || 'Failed to delete thesis.'); // Display alert
       }
     }
   };
 
+  const handleUserRoleChange = async (id, role) => {
+    try {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/users/${id}/role`, { role }, config);
+      fetchUsersAndTheses(); // Refetch data to update the table
+    } catch (err) {
+      console.error('Error updating user role:', err.response ? err.response.data : err.message);
+      alert(err.response?.data?.message || 'Failed to update user role.'); // Display alert
+    }
+  };
 
-  if (loadingUsers || loadingTheses) {
-    return <div className="admin-panel-container">Loading data...</div>;
+  if (loading) {
+    return (
+      <Container className="my-4 text-center">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading data...</span>
+        </Spinner>
+        <p>Loading data...</p>
+      </Container>
+    );
   }
 
   if (error) {
-    return <div className="admin-panel-container error-message">{error}</div>;
+    return (
+      <Container className="my-4">
+        <Alert variant="danger" className="text-center">{error}</Alert>
+      </Container>
+    );
   }
 
   return (
-    <div className="admin-panel-container">
-      <h2>অ্যাডমিন প্যানেল (Admin Panel)</h2>
-      {message && <p className="success-message">{message}</p>}
+    <Container className="my-4">
+      <h2 className="mb-3">Admin Panel</h2>
 
-      {/* ইউজার ম্যানেজমেন্ট সেকশন */}
-      <section className="admin-section">
-        <h3>ইউজার ম্যানেজমেন্ট (User Management)</h3>
-        <table className="users-table">
+      <h3 className="mt-5 mb-3">User Management</h3>
+      {users.length === 0 ? (
+        <Alert variant="info" className="text-center">No users found.</Alert>
+      ) : (
+        <Table striped bordered hover responsive className="mb-5"> {/* Bootstrap classes and responsive */}
           <thead>
             <tr>
-              <th>ইউজার আইডি (User ID)</th>
-              <th>ইমেইল (Email)</th>
-              <th>রোল (Role)</th>
-              <th>অ্যাকশন (Action)</th>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -176,34 +114,36 @@ function AdminPanel() {
                 <td>{user.email}</td>
                 <td>{user.role}</td>
                 <td>
-                  {user.role === 'user' ? (
-                    <button onClick={() => handleRoleChange(user._id, 'admin')} className="action-button">
-                      অ্যাডমিন করুন (Make Admin)
-                    </button>
-                  ) : (
-                    <button onClick={() => handleRoleChange(user._id, 'user')} className="action-button secondary">
-                      ইউজার করুন (Make User)
-                    </button>
-                  )}
+                  <Dropdown>
+                    <Dropdown.Toggle variant="secondary" id={`dropdown-role-${user._id}`} size="sm">
+                      Change Role
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => handleUserRoleChange(user._id, 'admin')}>Make Admin</Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleUserRoleChange(user._id, 'user')}>Make User</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
-      </section>
+        </Table>
+      )}
 
-      {/* থিসিস ম্যানেজমেন্ট সেকশন */}
-      <section className="admin-section">
-        <h3>থিসিস ম্যানেজমেন্ট (Thesis Management)</h3>
-        <table className="users-table"> {/* একই টেবিল ক্লাস ব্যবহার করা হয়েছে, তুমি চাইলে নতুন CSS ক্লাস দিতে পারো */}
+      <h3 className="mt-5 mb-3">Thesis Management</h3>
+      {theses.length === 0 ? (
+        <Alert variant="info" className="text-center">No theses found.</Alert>
+      ) : (
+        <Table striped bordered hover responsive> {/* Bootstrap classes and responsive */}
           <thead>
             <tr>
-              <th>টাইটেল (Title)</th>
-              <th>লেখক (Author)</th>
-              <th>স্ট্যাটাস (Status)</th>
-              <th>আপলোডার (Uploader)</th>
-              <th>আপলোড তারিখ (Upload Date)</th>
-              <th>অ্যাকশন (Action)</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Department</th>
+              <th>Year</th>
+              <th>Uploader</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -211,37 +151,52 @@ function AdminPanel() {
               <tr key={thesis._id}>
                 <td>{thesis.title}</td>
                 <td>{thesis.author}</td>
+                <td>{thesis.department}</td>
+                <td>{thesis.year}</td>
+                <td>{thesis.user ? thesis.user.email : 'N/A'}</td>
                 <td>{thesis.status}</td>
-                <td>{thesis.user ? thesis.user.email : 'N/A'}</td> {/* ইউজারের ইমেইল দেখানোর জন্য */}
-                <td>{new Date(thesis.uploadDate).toLocaleDateString()}</td>
                 <td>
-                  {thesis.status === 'pending' && (
-                    <>
-                      <button onClick={() => handleThesisStatusChange(thesis._id, 'approved')} className="action-button">
-                        Approve
-                      </button>
-                      <button onClick={() => handleThesisStatusChange(thesis._id, 'rejected')} className="action-button secondary">
-                        Reject
-                      </button>
-                    </>
-                  )}
-                  {thesis.status !== 'pending' && (
-                     <button onClick={() => handleThesisStatusChange(thesis._id, 'pending')} className="action-button secondary">
-                        Mark Pending
-                    </button>
-                  )}
-                  {/* থিসিস ডিলিট বা এডিট করার বাটন, পরে যুক্ত করা হবে */}
-                  <button onClick={() => handleDeleteThesis(thesis._id)} className="action-button delete">
+                  <Button
+                    variant="success"
+                    size="sm"
+                    className="me-2" // margin-end for spacing
+                    onClick={() => handleThesisStatusChange(thesis._id, 'approved')}
+                    disabled={thesis.status === 'approved'}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    className="me-2"
+                    onClick={() => handleThesisStatusChange(thesis._id, 'pending')}
+                    disabled={thesis.status === 'pending'}
+                  >
+                    Pending
+                  </Button>
+                  <Button
+                    variant="info" // Changed to info for rejected
+                    size="sm"
+                    className="me-2"
+                    onClick={() => handleThesisStatusChange(thesis._id, 'rejected')}
+                    disabled={thesis.status === 'rejected'}
+                  >
+                    Reject
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleDeleteThesis(thesis._id)}
+                  >
                     Delete
-                  </button>
-                  {/* <Link to={`/admin/theses/edit/${thesis._id}`} className="action-button">Edit</Link> */}
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
-      </section>
-    </div>
+        </Table>
+      )}
+    </Container>
   );
 }
 

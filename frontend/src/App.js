@@ -1,30 +1,39 @@
-// frontend/src/App.js
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Register from './pages/Register';
+// frontend/src/App.js এর সংশ্লিষ্ট অংশ
+
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import ThesisUpload from './pages/ThesisUpload';
+import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
-import Profile from './pages/Profile'; // <<< Import this line
+import AppNavbar from './components/AppNavbar'; // AppNavbar নামে ইম্পোর্ট করা হয়েছে
+//import PrivateRoute from './components/PrivateRoute';
+//import AdminRoute from './components/AdminRoute';
+import UploadThesis from './pages/UploadThesis';
+import Home from './pages/Home'; // <<< Home কম্পোনেন্ট ইম্পোর্ট করুন
 
 function App() {
   return (
     <Router>
-      <Navbar />
-      <div className="container" style={{ paddingTop: '80px' }}>
+      <AppNavbar />
+      {/* App.js থেকে গ্লোবাল .container div টি সরিয়ে প্রতিটি পেজের ভেতরে Container কম্পোনেন্ট ব্যবহার করা হবে।
+         এতে Home পেজের Hero সেকশনটি full width হবে।
+      */}
+      {/* <div className="container"> */} 
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Home />} /> {/* <<< এটি হোম পেজ হিসেবে সেট করা হলো */}
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/upload" element={<ThesisUpload />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/profile" element={<Profile />} /> {/* <<< Add this route */}
+          <Route path="/register" element={<Register />} />
+          {/* Private Routes 
+          <Route path="/dashboard" element={<PrivateRoute component={Dashboard} />} />
+          <Route path="/profile" element={<PrivateRoute component={Profile} />} />
+          <Route path="/upload-thesis" element={<PrivateRoute component={UploadThesis} />} />
+          */}
+          {/* Admin Route */}
+          {/*<Route path="/admin" element={<AdminRoute component={AdminPanel} />} />*/}
+          
         </Routes>
-      </div>
+      {/* </div> */}
     </Router>
   );
 }

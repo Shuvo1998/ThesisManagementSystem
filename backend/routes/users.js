@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); // Import the User model
 const auth = require('../middleware/auth'); // Import authentication middleware
-const authorize = require('../middleware/authorize'); // Import authorization middleware
+const authorize = require('../middleware/authorize.js'); // Import authorization middleware
 
 // @route   GET /api/users
 // @desc    Get all users (Admin only)
