@@ -7,8 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import AppNavbar from './components/AppNavbar'; // AppNavbar নামে ইম্পোর্ট করা হয়েছে
-//import PrivateRoute from './components/PrivateRoute';
-//import AdminRoute from './components/AdminRoute';
+
 import UploadThesis from './pages/UploadThesis';
 import Home from './pages/Home'; // <<< Home কম্পোনেন্ট ইম্পোর্ট করুন
 
@@ -24,6 +23,13 @@ function App() {
           <Route path="/" element={<Home />} /> {/* <<< এটি হোম পেজ হিসেবে সেট করা হলো */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/upload-thesis" element={<UploadThesis />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          {/* Add other routes here */}
+          <Route path="*" element={<h1>404 Not Found</h1>} />
+        </Routes>
           {/* Private Routes 
           <Route path="/dashboard" element={<PrivateRoute component={Dashboard} />} />
           <Route path="/profile" element={<PrivateRoute component={Profile} />} />
@@ -32,7 +38,7 @@ function App() {
           {/* Admin Route */}
           {/*<Route path="/admin" element={<AdminRoute component={AdminPanel} />} />*/}
           
-        </Routes>
+       
       {/* </div> */}
     </Router>
   );

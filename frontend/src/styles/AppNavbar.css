@@ -1,0 +1,39 @@
+/* frontend/src/styles/AppNavbar.css */
+
+/* Default Nav.Link styles for dark navbar */
+.navbar-dark .nav-link {
+    color: rgba(255, 255, 255, 0.75); /* Light grey for inactive links */
+    padding: 0.5rem 1rem; /* Bootstrap default spacing */
+    transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    border-radius: 5px; /* Slightly rounded corners */
+}
+
+.navbar-dark .nav-link:hover {
+    color: #fff; /* White on hover */
+    background-color: rgba(255, 255, 255, 0.1); /* Slight background on hover */
+}
+
+/* Active NavLink specific styles */
+.navbar-dark .nav-link.active-nav-link {
+    color: #007bff; /* Primary blue for active link */
+    font-weight: bold;
+    background-color: rgba(0, 123, 255, 0.2); /* Light blue background for active link */
+    border-bottom: 2px solid #007bff; /* Bottom border for emphasis */
+    padding-bottom: calc(0.5rem - 2px); /* Adjust padding to account for border */
+}
+
+/* Style for Navbar Brand (optional) */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Responsive adjustments if needed, though Bootstrap handles most */
+@media (max-width: 991.98px) { /* For 'lg' breakpoint and below */
+    .navbar-dark .navbar-nav .active-nav-link {
+        color: #007bff; /* Ensure active color on mobile collapse */
+        background-color: rgba(0, 123, 255, 0.1); /* Background also on mobile */
+        border-bottom: none; /* No bottom border on stacked links */
+        padding-bottom: 0.5rem; /* Reset padding */
+    }
+}

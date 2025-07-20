@@ -1,12 +1,15 @@
 // frontend/src/pages/Register.js
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Button, Container, Card, Alert } from 'react-bootstrap'; // <<< এই লাইনটি আপডেট করুন
-//import '../styles/Register.css'; // যদি কোনো কাস্টম CSS থাকে
+import { Form, Button, Container, Card, Alert } from 'react-bootstrap';
+//import '../styles/Register.css';
 
 function Register() {
   const [formData, setFormData] = useState({
+    // Add username field here
+    username: '', // <<< Add this line
     email: '',
     password: '',
     confirmPassword: '',
@@ -15,13 +18,13 @@ function Register() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { email, password, confirmPassword } = formData;
+  const { username, email, password, confirmPassword } = formData; // <<< Destructure username also
 
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Clear previous errors
+    setError(null);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -29,13 +32,13 @@ function Register() {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, { email, password });
+      // Send username along with email and password
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, { username, email, password }); // <<< Pass username here
       
-      navigate('/login'); // Redirect to login page after successful registration
+      navigate('/login');
     } catch (err) {
       console.error('Registration error:', err.response ? err.response.data : err.message);
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
-      // If validation errors (e.g., from express-validator), display them
       if (err.response && err.response.data && err.response.data.errors) {
         setError(err.response.data.errors.map(e => e.msg).join(', '));
       }
@@ -48,6 +51,20 @@ function Register() {
         <h2 className="text-center mb-4">Register</h2>
         {error && <Alert variant="danger" className="text-center">{error}</Alert>}
         <Form onSubmit={onSubmit}>
+          {/* Add Username Input Field */}
+          <Form.Group controlId="formBasicUsername" className="mb-3"> {/* <<< Add this group */}
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter username"
+              name="username"
+              value={username}
+              onChange={onChange}
+              required
+            />
+          </Form.Group>
+          {/* End Username Input Field */}
+
           <Form.Group controlId="formBasicEmail" className="mb-3">
             <Form.Label>Email address</Form.Label>
             <Form.Control
