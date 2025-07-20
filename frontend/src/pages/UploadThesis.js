@@ -39,7 +39,6 @@ function UploadThesis() {
       return;
     }
 
-    // সমস্ত প্রয়োজনীয় ফিল্ডের জন্য ক্লায়েন্ট-সাইড ভ্যালিডেশন
     if (!title || !author || !abstract || !department || !supervisor || !publicationYear || !university) {
       setError('Please fill in all required fields: Title, Author, Abstract, Department, Supervisor, Publication Year, and University.');
       return;
@@ -60,8 +59,8 @@ function UploadThesis() {
       data.append('department', department);
       data.append('supervisor', supervisor);
       data.append('publicationYear', publicationYear);
-      data.append('university', university); // FormData তে যোগ করা হয়েছে
-      data.append('pdfFile', selectedFile); // নিশ্চিত করুন 'pdfFile' নামটি ব্যাকএন্ডের Multer সেটিং এর সাথে মিলে যায়
+      data.append('university', university);
+      data.append('pdfFile', selectedFile);
 
       const config = {
         headers: {
@@ -72,8 +71,9 @@ function UploadThesis() {
 
       const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/theses/upload`, data, config);
 
-      setMessage('Thesis uploaded successfully! It is now pending for admin approval.');
-      // ফর্ম রিসেট করুন
+      // setMessage('Thesis uploaded successfully! It is now pending for admin approval.'); // এই মেসেজটি আর দেখানোর দরকার নেই, কারণ রিডিরেক্ট হবে
+
+      // ফর্ম রিসেট করুন (যদি রিডিরেক্ট এর আগে স্টেট পরিষ্কার করতে চান)
       setFormData({
         title: '',
         author: '',
@@ -84,12 +84,13 @@ function UploadThesis() {
         university: '',
       });
       setSelectedFile(null);
-      // সফল আপলোডের পর ব্যবহারকারীকে ড্যাশবোর্ডে নিয়ে যেতে পারেন
-      // navigate('/dashboard'); 
+
+      // *** এই লাইনটি যোগ করুন বা আনকমেন্ট করুন ***
+      navigate('/dashboard');
+
     } catch (err) {
       console.error('Error uploading thesis:', err.response ? err.response.data : err.message);
       setError(err.response?.data?.message || 'Failed to upload thesis. Please try again.');
-      // যদি ব্যাকএন্ড থেকে ভ্যালিডেশন এরর আসে (যেমন Joi বা Express Validator থেকে)
       if (err.response && err.response.data && err.response.data.errors) {
         setError(err.response.data.errors.map(errorItem => errorItem.msg).join(', '));
       }
